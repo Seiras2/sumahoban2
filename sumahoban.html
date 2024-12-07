@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>竹取衰弱</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #f7a3d7;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .round-title {
+            font-size: 24px;
+            color: #42353d;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            background-color: #ffccf2;
+            text-align: center;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            grid-gap: 10px;
+            justify-content: center;
+            width: 80%;
+            max-width: 800px;
+        }
+        .card {
+            width: 100%;
+            height: 120px;
+            background-color: #ffccf2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #322e2e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+        }
+        .card.flip {
+            background-color: #f5f2f2;
+        }
+        #next-round-btn, #start-btn {
+            padding: 15px 30px;
+            background-color: #f6afe0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        #next-round-btn:hover, #start-btn:hover {
+            background-color: #f28fb1;
+        }
+        #sns-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        #sns-buttons a, #sns-buttons button {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            color: white;
+            display: inline-block;
+        }
+        #twitter-share-btn {
+            background-color: #1da1f2;
+        }
+        #facebook-share-btn {
+            background-color: #1877f2;
+        }
+        #line-share-btn {
+            background-color: #00c300;
+        }
+        #copy-url-btn {
+            background-color: #040404;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<h1>～竹取衰弱～</h1>
+<button id="start-btn">ゲームを始める</button>
+<div id="round-title" class="round-title" style="display: none;"></div>
+<div id="game-container"></div>
+<button id="next-round-btn" style="display: none;">次のラウンドへ</button>
+
+<!-- SNSシェアボタン（常に表示）-->
+<div id="sns-buttons">
+    <a href="https://twitter.com/intent/tweet?text=竹取衰弱をプレイしよう！&url=https://taketori.vercel.app/taketorisuijaku.html" target="_blank" id="twitter-share-btn">Twitterでシェア</a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u=https://taketori.vercel.app/taketorisuijaku.html" target="_blank" id="facebook-share-btn">Facebookでシェア</a>
+    <a href="https://social-plugins.line.me/lineit/share?url=https://taketori.vercel.app/taketorisuijaku.html" target="_blank" id="line-share-btn">LINEでシェア</a>
+    <button onclick="copyUrl()" id="copy-url-btn">URLをコピー</button>
+</div>
+
+<script>
+    const rounds = [
+        {
+            name: "ラウンド1: かぐや姫の誕生",
+            cards: [
+                { id: 1, text: "いまは昔、竹取の翁といふ者ありけり。", type: "原文" },
+                { id: 2, text: "野山にまじりて竹を取りつつ、よろづのことに使ひけり。", type: "原文" },
+                { id: 3, text: "その竹の中に、もと光る竹なむ一筋ありける。", type: "原文" },
+                { id: 4, text: "あやしがりて、寄りて見るに、筒の中光りたり。", type: "原文" },
+                { id: 5, text: "その竹を中に取り入るるに、三寸ばかりなる人、いとをかしうてゐたり。", type: "原文" },
+                { id: 1, text: "昔々、竹を取る翁がいました。", type: "現代語訳" },
+                { id: 2, text: "山野を歩き竹を採っては生活の糧にしていました。", type: "現代語訳" },
+                { id: 3, text: "ある日、竹の中に一筋の光る竹がありました。", type: "現代語訳" },
+                { id: 4, text: "不思議に思って近づいて見ると、中に小さな光が見えました。", type: "現代語訳" },
+                { id: 5, text: "竹の中には、約三寸ほどのとても美しい少女がいました。", type: "現代語訳" }
+            ]
+        },
+        {
+            name: "ラウンド2: かぐや姫の成長",
+            cards: [
+                { id: 1, text: "その子、竹取の翁が家に養ふほどに、すくすくと成長して、世にあらざらむばかりのかぐやかなる人となりぬ。", type: "原文" },
+                { id: 2, text: "翁、財を蓄へ、この子を養ひつるほどに、この世の人の見る目も驚きて、", type: "原文" },
+                { id: 3, text: "かの姫を「かぐや姫」と名づけけり。", type: "原文" },
+                { id: 4, text: "かぐや姫を得んと求むる人、多かりけれども、かぐや姫、返る返る思ひなして、五つの難題を言ひおきつ。", type: "原文" },
+                { id: 5, text: "帝、かぐや姫を見初めたまひ、文など贈りけれど、かぐや姫はただ返り文を遣はして、参上せず。", type: "原文" },
+                { id: 1, text: "その少女は、竹取の翁の家で育てられるうちに、みるみる成長し、世にも稀な美しい女性になりました。", type: "現代語訳" },
+                { id: 2, text: "翁は竹で得た財産で姫を育て、姫の美しさは誰もが驚くほどでした。", type: "現代語訳" },
+                { id: 3, text: "このことから、姫は「かぐや姫」と名づけられました。", type: "現代語訳" },
+                { id: 4, text: "かぐや姫に求婚する者が大勢いましたが、かぐや姫は誰も受け入れず、五つの難題を出しました。", type: "現代語訳" },
+                { id: 5, text: "帝はかぐや姫に一目惚れし、手紙などを送りましたが、かぐや姫は返信をするだけで宮中には参上しませんでした。", type: "現代語訳" }
+            ]
+        },
+        {
+            name: "ラウンド3: かぐや姫の故郷",
+            cards: [
+                { id: 1, text: "かぐや姫のいふやう、「この身は、もとよりこの国の人にもあらず。月の都の人なり。」", type: "原文" },
+                { id: 2, text: "「この八月十五日に、天人迎へに参りなむ。」", type: "原文" },
+                { id: 3, text: "翁、泣く泣く「なでふ心にてか、かかる別れをせん。」", type: "原文" },
+                { id: 4, text: "「月の都の人とならば、わが嘆き聞きたまへ。」", type: "原文" },
+                { id: 5, text: "天人、車を寄せ、かぐや姫を迎へ奉る。", type: "原文" },
+                { id: 1, text: "かぐや姫は「私はもともとこの国の人間ではありません。月の都の住人です。」と言いました。", type: "現代語訳" },
+                { id: 2, text: "また、「八月十五日には天人が私を迎えに来るでしょう。」と告げました。", type: "現代語訳" },
+                { id: 3, text: "翁は泣きながら、「どうしてこんな別れをしなければならないのか。」と言いました。", type: "現代語訳" },
+                { id: 4, text: "翁はまた、「月に戻るのであれば、私の嘆きを聞いてください。」と言いました。", type: "現代語訳" },
+                { id: 5, text: "天人たちは車を寄せてかぐや姫を迎えました。", type: "現代語訳" }
+            ]
+        },
+        {
+            name: "ラウンド4: かぐや姫の別れ",
+            cards: [
+                { id: 1, text: "かぐや姫、「我、この世にて多くの恩を受け、別れ難き心あるに、天の定めには背かれず」と言ひて、涙を流しぬ。", type: "原文" },
+                { id: 2, text: "天人、「人間の力にて天の定めを変ふるべからず」と言ひ、雲を分けて姫を迎えたり。", type: "原文" },
+                { id: 3, text: "姫、翁と嫗に別れを告げ、「これまでの御恩を忘れまじ」とて、書を残し、", type: "原文" },
+                { id: 4, text: "その羽衣を着れば、この世の思ひ出、皆忘れぬるものなれば、", type: "原文" },
+                { id: 5, text: "姫、涙を流しつつも、それを身に纏ひて、輝く車に乗り、月の都へ帰りぬ。", type: "原文" },
+                { id: 1, text: "かぐや姫は「私はこの世で多くの恩を受け、別れるのが辛いのですが、天の定めには逆らえません」と言い、涙を流しました。", type: "現代語訳" },
+                { id: 2, text: "天人たちは「人間の力では天の定めを変えることはできません」と言い、雲を裂いて姫を迎えました。", type: "現代語訳" },
+                { id: 3, text: "かぐや姫は翁と嫗に別れを告げ、「これまでいただいたご恩は決して忘れません」と感謝の言葉を伝え、手紙を残しました。", type: "現代語訳" },
+                { id: 4, text: "そして、天人から渡された羽衣を身に着けました。", type: "現代語訳" },
+                { id: 5, text: "姫は涙をこぼしながらも羽衣を纏い、光り輝く車に乗って月の都へ帰っていきました。", type: "現代語訳" }
+            ]
+        },
+        {
+            name: "ラウンド5: かぐや姫の贈り物",
+            cards: [
+                { id: 1, text: "翁と嫗は、かぐや姫を失ひて、嘆き悲しむこと限りなし。", type: "原文" },
+                { id: 2, text: "月の都へ帰りし後、姫よりの書と天人の渡した薬を見て、涙をこぼしつつ、それを手に取りき。", type: "原文" },
+                { id: 3, text: "帝もまた、姫の消息を絶たれたるを悲しみ、しばし日毎に空を仰ぎ見て、思ひを馳せられき。", type: "原文" },
+                { id: 4, text: "竹取の翁、その薬を天に向けて焚きて、姫の面影を偲ぶ。", type: "原文" },
+                { id: 5, text: "雲の間より光のさすを見れば、月におわす姫を感じ、なお一層胸ふさがる思ひありけり。", type: "原文" },
+                { id: 1, text: "翁と嫗は、かぐや姫を失ったことで、嘆き悲しむ気持ちは尽きることがありませんでした。", type: "現代語訳" },
+                { id: 2, text: "月の都へ帰った後、姫からの手紙と天人が置いていった不老不死の薬を見つけ、涙を流しながらそれを手に取りました。", type: "現代語訳" },
+                { id: 3, text: "帝もまた、かぐや姫と連絡が取れなくなったことを深く悲しみ、毎日のように空を見上げて姫に思いを馳せました。", type: "現代語訳" },
+                { id: 4, text: "竹取の翁は、月にいる姫への想いを胸に、その薬を天に向かって焚きました。", type: "現代語訳" },
+                { id: 5, text: "空を見上げると、雲間から光が差し込み、姫が月にいることを感じましたが、そのたびに一層悲しみが募りました。", type: "現代語訳" }
+            ]
+        }
+    ];
+    
+];
+
+let currentRound = 0;
+let flippedCards = [];
+let matchedPairs = 0;
+
+const startBtn = document.getElementById('start-btn');
+const nextRoundBtn = document.getElementById('next-round-btn');
+const gameContainer = document.getElementById('game-container');
+const roundTitle = document.getElementById('round-title');
+
+startBtn.addEventListener('click', startGame);
+nextRoundBtn.addEventListener('click', nextRound);
+
+function startGame() {
+    startBtn.style.display = 'none';
+    loadRound();
+}
+
+function loadRound() {
+    const roundData = rounds[currentRound];
+    roundTitle.textContent = roundData.name;
+    roundTitle.style.display = 'block';
+    gameContainer.innerHTML = '';
+    flippedCards = [];
+    matchedPairs = 0;
+
+    // シャッフルされたカードを表示
+    const shuffledCards = shuffle(roundData.cards);
+
+    shuffledCards.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('card');
+        cardElement.innerText = '';
+        cardElement.addEventListener('click', () => flipCard(card, cardElement));
+        gameContainer.appendChild(cardElement);
+    });
+}
+
+function flipCard(card, cardElement) {
+    if (cardElement.classList.contains('flip') || flippedCards.length === 2) {
+        return;
+    }
+
+    cardElement.classList.add('flip');
+    cardElement.innerText = card.text;
+    flippedCards.push({ card, cardElement });
+
+    if (flippedCards.length === 2) {
+        checkMatch();
+    }
+}
+
+function checkMatch() {
+    const [firstCard, secondCard] = flippedCards;
+
+    if (firstCard.card.id === secondCard.card.id && firstCard.card.type !== secondCard.card.type) {
+        matchedPairs++;
+        flippedCards = [];
+
+        if (matchedPairs === rounds[currentRound].cards.length / 2) {
+            if (currentRound < rounds.length - 1) {
+                nextRoundBtn.style.display = 'inline-block';
+            } else {
+                alert("ゲームクリア！おめでとう！友達にシェアしてみよう！");
+            }
+        }
+    } else {
+        setTimeout(() => {
+            firstCard.cardElement.classList.remove('flip');
+            secondCard.cardElement.classList.remove('flip');
+            firstCard.cardElement.innerText = '';
+            secondCard.cardElement.innerText = '';
+            flippedCards = [];
+        }, 1000);
+    }
+}
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function nextRound() {
+    currentRound++;
+    nextRoundBtn.style.display = 'none';
+    loadRound();
+}
+
+function copyUrl() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        alert('URLがコピーされました');
+    });
+}
+</script>
+
+</body>
+</html>
